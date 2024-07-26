@@ -3,6 +3,14 @@
   "include": ["electron.vite.config.*", "src/main/**/*", "src/preload/**/*"],
   "compilerOptions": {
     "composite": true,
-    "types": ["electron-vite/node"]
+    "types": ["electron-vite/node"],
+    "strict": true,
+    "plugins": [
+      {
+        "name": "gql.tada/ts-plugin",
+        "schema": "./schema.graphql",
+        "tadaOutputLocation": "./src/main/graphql-env.d.ts"
+      }
+    ]
   }
 }

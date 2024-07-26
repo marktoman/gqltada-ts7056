@@ -2,6 +2,45 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import { graphql } from './graphql'
+import { createClient, cacheExchange, fetchExchange } from '@urql/core'
+
+const RepositoryQuery = graphql(`
+  query Repository($owner: String!, $name: String!) {
+    repository(owner: $owner, name: $name) {
+      id
+      name
+      description
+    }
+  }
+`)
+
+const client = createClient({
+  url: 'https://api.github.com/graphql',
+  fetchOptions: () => ({
+    headers: {
+      authorization: `Bearer TODO`
+    }
+  }),
+  exchanges: [cacheExchange, fetchExchange]
+})
+
+// Example usage
+async function fetchRepository(): Promise<void> {
+  const result = await client.query(RepositoryQuery, { owner: '0no-co', name: 'gql.tada' })
+  const { data, error } = result
+
+  if (error) {
+    console.error(error)
+    return
+  }
+
+  const repo = data?.repository
+  if (repo) {
+    console.log('name', repo.name)
+    console.log('description', repo.description)
+  }
+}
 
 function createWindow(): void {
   // Create the browser window.
@@ -51,6 +90,7 @@ app.whenReady().then(() => {
 
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
+  ipcMain.on('fetch', fetchRepository)
 
   createWindow()
 
